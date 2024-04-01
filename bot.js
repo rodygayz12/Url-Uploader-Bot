@@ -1,31 +1,15 @@
-const { Bot } = require('botgram');
-const fetch = require('node-fetch');
-const fs = require('fs');
+const botgram = require("botgram")
+const bot = botgram("6861294909:AAEf5aupZPVgBeWmfM864AWcLSoRyutDrnY")
 
-const bot = new Bot({
-    token: '6861294909:AAEf5aupZPVgBeWmfM864AWcLSoRyutDrnY'
-});
+bot.command("start", "help", (msg, reply) =>
+  reply.text("To schedule an alert, do: /alert <seconds> <text>"))
 
-bot.command('start', (msg, reply) => {
-    reply.text('Welcome! Send me a direct URL to download a file.');
-});
+bot.command("alert", (msg, reply, next) => {
+  var [ seconds, text ] = msg.args(2)
+  if (!seconds.match(/^\d+$/) || !text) return next()
 
-bot.text((msg, reply) => {
-    const url = msg.text;
+  setTimeout(() => reply.text(text), Number(seconds) * 1000)
+})
 
-    fetch(url)
-        .then(response => {
-            const fileStream = fs.createWriteStream('downloaded_file');
-            response.body.pipe(fileStream);
-
-            fileStream.on('finish', () => {
-                reply.document({ filename: 'downloaded_file', file: fs.createReadStream('downloaded_file') });
-            });
-        })
-        .catch(err => {
-            console.error('Error downloading file:', err);
-            reply.text('Error downloading file.');
-        });
-});
-
-bot.start();
+bot.command((msg, reply) =>
+  reply.text("Invalid command."))
