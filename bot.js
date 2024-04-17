@@ -1,10 +1,20 @@
 const TelegramBot = require('node-telegram-bot-api');
-const axios = require('axios'); // For downloading files
+const axios = require('axios');
+const http = require('http');
 
 // Replace with your Telegram bot token
 const token = '7087733832:AAElTO6xQ3Lmc0MLlOKZkS8JVhe28SuzGBA';
 
 const bot = new TelegramBot(token);
+
+// Function to upload downloaded file (replace with your implementation)
+function uploadToTelegram(data) {
+  // Implement your logic here to upload the file to Telegram and return the downloadable URL
+  // This could involve Telegram's built-in upload functionality or a third-party service
+
+  console.warn('Upload logic not implemented. Please replace this function with your chosen upload method.');
+  return 'https://example.com/placeholder_file.txt'; // Placeholder URL for demonstration
+}
 
 bot.on('text', async (msg) => {
   const chatId = msg.chat.id;
@@ -19,8 +29,7 @@ bot.on('text', async (msg) => {
   try {
     const response = await axios.get(url, { responseType: 'stream' }); // Download the file
 
-    // Upload logic (replace with your preferred hosting provider's API)
-    const uploadedUrl = await uploadToTelegram(response.data); // Replace with your upload function
+    const uploadedUrl = await uploadToTelegram(response.data);
 
     // Send downloadable URL
     await bot.sendMessage(chatId, `Downloaded file: ${uploadedUrl}`);
@@ -30,11 +39,7 @@ bot.on('text', async (msg) => {
   }
 });
 
-// Replace this function with your upload logic
-function uploadToTelegram(data) {
-  // Replace with your upload function to return the downloadable URL on Telegram
-}
-// HTTP server to indicate bot is running (optional)
+// HTTP server for bot live status
 const server = http.createServer((req, res) => {
   res.statusCode = 200;
   res.setHeader('Content-Type', 'text/plain');
