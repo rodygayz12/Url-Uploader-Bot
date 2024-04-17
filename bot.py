@@ -1,8 +1,7 @@
 import logging
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from telegram.ext import Updater, CommandHandler, MessageHandler, filters
-from telegram import BotCommandError
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters, BotCommandError
 from progress.bar import Bar
 
 # Replace with your Telegram bot token
@@ -15,7 +14,6 @@ def handle_message(update, context):
     if not update.message.text.startswith('http'):
         context.bot.send_message(chat_id, 'Please send a message containing a direct link.')
         return
-
     url = update.message.text
 
     try:
