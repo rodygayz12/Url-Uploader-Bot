@@ -1,7 +1,7 @@
 import logging
 import threading
 from http.server import BaseHTTPRequestHandler, HTTPServer
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, filters
 from telegram import BotCommandError
 from progress.bar import Bar
 
