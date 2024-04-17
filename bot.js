@@ -34,3 +34,11 @@ bot.on('text', async (msg) => {
 function uploadToTelegram(data) {
   // Replace with your upload function to return the downloadable URL on Telegram
 }
+// HTTP server to indicate bot is running (optional)
+const server = http.createServer((req, res) => {
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain');
+  res.end('Bot is running!');
+});
+
+server.listen(8080, () => console.log('Server listening on port 8080'));
