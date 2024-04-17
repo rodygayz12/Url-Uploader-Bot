@@ -1,83 +1,70 @@
 const TelegramBot = require('node-telegram-bot-api');
-const axios = require('axios');
+const { spawn } = require('child_process'); // For video conversion (optional)
 const http = require('http');
-const progress = require('progress-stream');
 
 // Replace with your Telegram bot token
 const token = '7087733832:AAElTO6xQ3Lmc0MLlOKZkS8JVhe28SuzGBA';
 
-// Create a Telegram bot instance
+// Optional video conversion settings (FFmpeg required)
+const ffmpegPath = '/usr/bin/ffmpeg'; // Update path if FFmpeg is installed elsewhere
+const outputFormat = 'video/mp4'; // Change to desired output format
+
 const bot = new TelegramBot(token);
 
+bot.on('text', async (msg) => {
+  const chatId = msg.chat.id;
+  const url = msg.text;
+
+  // Validate URL format (http/https)
+  if (!url.startsWith('http')) {
+    bot.sendMessage(chatId, 'Please provide a valid URL.');
+    return;
+  }
+
+  try {
+    // Download logic using a library like axios (not included here)
+    const response = await axios.get(url, { responseType: 'stream' }); // Replace axios with your preferred library
+
+    // Send original URL
+    await bot.sendMessage(chatId, `Original URL: ${url}`);
+
+    // Upload logic (replace with your preferred hosting provider's API)
+    const uploadedUrl = await uploadToTelegram(response.data); // Replace with your upload function
+
+    // Optional video conversion using FFmpeg
+    if (ffmpegPath && outputFormat) {
+      await convertVideo(uploadedUrl);
+      uploadedUrl = await getConvertedUrl(uploadedUrl); // Replace with functions to get converted video URL
+    }
+
+    // Send downloadable video URL
+    await bot.sendMessage(chatId, `Download video: ${uploadedUrl}`);
+  } catch (error) {
+    console.error(error);
+    bot.sendMessage(chatId, 'An error occurred. Please try again later.');
+  }
+});
+
+// HTTP server to indicate bot is running (optional)
 const server = http.createServer((req, res) => {
-  res.writeHead(200);
+  res.statusCode = 200;
+  res.setHeader('Content-Type', 'text/plain');
   res.end('Bot is running!');
 });
 
-server.listen(8080, () => {
-  console.log('HTTP server listening on port 8080');
-});
+server.listen(8080, () => console.log('Server listening on port 8080'));
 
-bot.on('message', async (msg) => {
-  const chatId = msg.chat.id;
+// Replace these functions with your upload logic and video conversion logic (if applicable)
+function uploadToTelegram(data) {
+  // Replace with your upload function to return the downloadable URL on Telegram
+}
 
-  // Check if message contains a link
-  if (!msg.text.includes('http')) {
-    return bot.sendMessage(chatId, 'Please send a message containing a direct link.');
-  }
+async function convertVideo(url) {
+  // Replace with FFmpeg command to convert video to desired format
+  spawn(ffmpegPath, ['-i', url, '-c:v', 'libx264', '-c:a', 'aac', outputFormat, 'converted.mp4']); // Update command based on your needs
+}
 
-  const url = msg.text;
-
-  try {
-    // Download the file using axios with progress bar
-    const response = await axios.get(url, { responseType: 'stream' });
-
-    const filename = url.split('/').pop();
-
-    const progressBar = progress({
-      length: parseInt(response.headers['content-length'], 10),
-      total: parseInt(response.headers['content-length'], 10),
-      char: '#',
-      incomplete: '-',
-      complete: '=',
-      width: 50,
-    });
-
-    response.data.pipe(progressBar);
-
-    progressBar.on('progress', (progress) => {
-      const percentage = Math.floor(progress.completed * 100);
-      bot.sendMessage(chatId, `Downloading: ${percentage}% complete`);
-    });
-
-    progressBar.on('end', async () => {
-      // Upload the file using Telegram API with progress bar
-      const fileStream = progressBar; // Assuming progress stream is compatible with Telegram API
-
-      const uploadProgress = progress({
-        length: parseInt(response.headers['content-length'], 10),
-        total: parseInt(response.headers['content-length'], 10),
-        char: '#',
-        incomplete: '-',
-        complete: '=',
-        width: 50,
-      });
-
-      fileStream.pipe(uploadProgress);
-
-      uploadProgress.on('progress', (progress) => {
-        const percentage = Math.floor(progress.completed * 100);
-        bot.sendMessage(chatId, `Uploading: ${percentage}% complete`);
-      });
-
-      await bot.sendDocument(chatId, fileStream, { filename });
-      bot.sendMessage(chatId, 'File uploaded successfully!');
-    });
-  } catch (error) {
-    console.error(error);
-    bot.sendMessage(chatId, 'Error downloading or uploading file.');
-  }
-});
-
-// Start the bot
-bot.startPolling();
+function getConvertedUrl(originalUrl) {
+  // Replace with logic to get the downloadable URL of the converted video on Telegram
+  // You might need to store the converted video and provide a temporary URL
+}
